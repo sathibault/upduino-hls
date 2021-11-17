@@ -1,0 +1,35 @@
+{
+  "name": "upduino_hls",
+  "title": "Upduino HLS",
+  "description": "Upduino HLS",
+  "license": "CC-BY-NC-ND-2.5",
+  "version": "0.1.0",
+  "keywords": [
+    "build tools",
+    "fpga"
+  ],
+  "frameworks": {
+  },
+  "packages": {
+    "toolchain-logicc": {
+      "type": "toolchain",
+      "owner": "streamlogic",
+      "version": "https://github.com/sathibault/toolchain-logicc/releases/download/v0.1.0/toolchain-logicc-windows_amd-0.1.0.tar.gz"
+    },
+    "toolchain-fpgaoss": {
+      "type": "toolchain",
+      "version": "https://github.com/sathibault/toolchain-fpgaoss/releases/download/v1.0.0/toolchain-fpgaoss-windows_amd64-1.0.0.tar.gz"
+    },
+    "toolchain-gccmingw32": {
+      "optional": "true",
+      "type": "toolchain",
+      "version": "^1"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sathibault/upduino-hls"
+  },
+  "pythonPackages": {
+  }
+}
