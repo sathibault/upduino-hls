@@ -45,6 +45,9 @@ if system() == 'Windows':
     except KeyError:
         raise SCons.Errors.UserError('ERROR: Please install windows_x86')
 
+    if gccdir == None:
+        raise SCons.Errors.UserError('ERROR: Please install windows_x86')
+
     env.Replace(
         _BINPREFIX="",
         AR="${_BINPREFIX}ar",
@@ -155,7 +158,10 @@ xcfgen = Builder(
     action = xcf_generator,
 )
 
-uploadcmd = find_radiant() +  ' -infile $SOURCE'
+if 'UPLOADCMD' in env:
+    uploadcmd = env['UPLOADCMD']
+else:
+    uploadcmd = find_radiant() +  ' -infile $SOURCE'
 
 env.Append(BUILDERS={'LogiCC': logicc, 'SM': sm, 'Hdl': hdl, 'Prep': prep,
                      'Ghdl': ghdl, 'Yosys': yosys, 'Pnr': pnr, 'Xcfgen': xcfgen})
