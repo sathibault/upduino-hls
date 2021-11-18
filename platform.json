@@ -14,7 +14,7 @@
     "toolchain-logicc": {
       "type": "toolchain",
       "owner": "streamlogic",
-      "version": "https://github.com/sathibault/toolchain-logicc/releases/download/v0.1.0/toolchain-logicc-windows_amd-0.1.2.tar.gz"
+      "version": "https://github.com/sathibault/toolchain-logicc/releases/download/v0.1.0/toolchain-logicc-windows_amd-0.1.1.tar.gz"
     },
     "toolchain-fpgaoss": {
       "type": "toolchain",
