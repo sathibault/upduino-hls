@@ -97,12 +97,8 @@ else:
     # Restore C/C++ build flags as they were overridden by env.Tool
     env.Append(CFLAGS=backup_cflags, CXXFLAGS=backup_cxxflags)
 
-# This is for nextpnr
-env['ENV']['PYTHONPATH'] = pio.get_package_dir('toolchain-fpgaoss')
-env['ENV']['PYTHONHOME'] = pio.get_package_dir('toolchain-fpgaoss')
-
 logicc = Builder(
-    action='logicc $SOURCES -o $TARGET -L$LOGICC_DIR/dist/connlib.xml -- -target x86_64-pc-windows-gnu --std=c++14 -fcomment-block-commands=role -DLOGICC -I$LOGICC_DIR/include -resource-dir /no/such/place -isystem $LOGICC_DIR/ext/llvm-project/build/Release/lib/clang/3.6.0/include -isystem $LOGICC_DIR/ext/llvm-project/libcxx/include -isystem $LOGICC_DIR/sysinclude -isystem $LOGICC_DIR/sysinclude/x86_64-linux-gnu',
+    action='logicc $SOURCES -o $TARGET -L$LOGICC_DIR/dist/connlib.xml -L$LOGICC_DIR/dist/frames.xml -L$LOGICC_DIR/dist/blackbox.xml -- -target x86_64-pc-windows-gnu --std=c++14 -fcomment-block-commands=role -DLOGICC -I$LOGICC_DIR/include -resource-dir /no/such/place -isystem $LOGICC_DIR/ext/llvm-project/build/Release/lib/clang/3.6.0/include -isystem $LOGICC_DIR/ext/llvm-project/libcxx/include -isystem $LOGICC_DIR/sysinclude -isystem $LOGICC_DIR/sysinclude/x86_64-linux-gnu',
     suffix='.lcc',
     src_suffix='.cc')
 
@@ -128,6 +124,11 @@ sm = Builder(
     suffix='.xhw',
     src_suffix='.lcc')
 
+
+frammer = Builder(
+  action='python $LOGICC_DIR/bin/frammer.py -o $BUILD_DIR/hw/upduino_sys.v $LOGICC_DIR/dist/frames.xml $SOURCE $BUILD_DIR/hw/upduino_sys.in.v',
+  src_suffix='.xic')
+
 hdl = Builder(
     action='hdlgen $SOURCE $TARGET',
     suffix='.vhd',
@@ -142,9 +143,15 @@ ghdl = Builder(
 )
 
 yosys = Builder(
-    action='yosys -s synth.s',
+    action='yosys -s synth.s > synthesis.log',
     chdir=env.subst(hw_dir)
 )
+
+# nextpnr is built with embedded python and requires the
+# PYTHONPATH/PYTHONHOME to point to it's installation path
+prn_env = dict(env['ENV'])
+prn_env['PYTHONPATH'] = pio.get_package_dir('toolchain-fpgaoss')
+prn_env['PYTHONHOME'] = pio.get_package_dir('toolchain-fpgaoss')
 
 pnr = Builder(
     action=[
@@ -152,7 +159,9 @@ pnr = Builder(
         'icepack $BUILD_DIR/hw/upduino-pnr.asc $TARGET'
         ],
     suffix='.bin',
-    src_suffix='.json')
+    src_suffix='.json',
+    ENV=prn_env
+)
 
 xcfgen = Builder(
     action = xcf_generator,
@@ -163,8 +172,10 @@ if 'UPLOADCMD' in env:
 else:
     uploadcmd = find_radiant() +  ' -infile $SOURCE'
 
-env.Append(BUILDERS={'LogiCC': logicc, 'SM': sm, 'Hdl': hdl, 'Prep': prep,
-                     'Ghdl': ghdl, 'Yosys': yosys, 'Pnr': pnr, 'Xcfgen': xcfgen})
+env.Append(BUILDERS={'Prep': prep, 'LogiCC': logicc, 'SM': sm, 'Hdl': hdl,
+                     'Frammer': frammer,
+                     'Ghdl': ghdl, 'Yosys': yosys, 'Pnr': pnr,
+                     'Xcfgen': xcfgen})
 
 #target_bin = env.BuildProgram()
 
@@ -195,10 +206,14 @@ xhw = env.SM(
     os.path.join('$BUILD_DIR', env['PROGNAME']+'.xhw'),
     lcc)
 
+frame = env.Frammer(
+    os.path.join(os.path.join('$BUILD_DIR', 'hw'),'upduino_sys.v'),
+    lcc)
+
 vhd = env.Hdl(
     os.path.join(os.path.join('$BUILD_DIR', 'hw'),env['PROGNAME']+'.vhd'),
     xhw)
-env.Alias('rtl', vhd)
+env.Alias('rtl', [vhd,frame])
 
 work = env.Ghdl(
     os.path.join(os.path.join('$BUILD_DIR', 'hw'),'work-obj93.cf'),
@@ -207,7 +222,7 @@ env.Alias('work', work)
 
 netlist = env.Yosys(
     os.path.join(os.path.join('$BUILD_DIR', 'hw'),'upduino.json'),
-    work)
+    [work,frame])
 env.Alias('netlist', netlist)
 
 bitstream = env.Pnr(
