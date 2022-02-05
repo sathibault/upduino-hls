@@ -137,6 +137,7 @@ hdl = Builder(
 ghdl = Builder(
     action=[
         'ghdl -a --ieee=synopsys --work=streamlogic lib\divmod.vhd lib\streamlogic.vhd lib\sxmath.vhd',
+        'ghdl -a --ieee=synopsys sampler.vhd spi_master_impl.vhd spi_master.vhd',
         'ghdl -a --ieee=synopsys '+env['PROGNAME']+'_ip.vhd '+env['PROGNAME']+'.vhd upduino_fpga0_cn.vhd upduino_fpga0.vhd'
         ],
     chdir=env.subst(hw_dir)
