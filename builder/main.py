@@ -173,10 +173,8 @@ xcfgen = Builder(
     action = xcf_generator,
 )
 
-if 'UPLOADCMD' in env:
-    uploadcmd = env['UPLOADCMD']
-else:
-    uploadcmd = find_radiant() +  ' -infile $SOURCE'
+uploadcmd = env['UPLOADCMD'] if 'UPLOADCMD' else find_radiant()
+uploadcmd += ' -infile $SOURCE'
 
 env.Append(BUILDERS={'Prep': prep, 'LogiCC': logicc, 'SM': sm, 'Hdl': hdl,
                      'Frammer': frammer,
