@@ -8,10 +8,15 @@ from SCons.Script import COMMAND_LINE_TARGETS, AlwaysBuild, Default, DefaultEnvi
 
 def find_radiant():
     pgrdir = None
-    for filename in glob.glob('/lscc/radiant/*'):
-        testdir = os.path.join(filename, 'programmer')
+    for filename in ['/lscc/programmer']:
+        testdir = os.path.join(filename, 'radiant')
         if os.path.isdir(testdir):
             pgrdir = os.path.normpath(testdir)
+    if not pgrdir:
+        for filename in glob.glob('/lscc/radiant/*'):
+            testdir = os.path.join(filename, 'programmer')
+            if os.path.isdir(testdir):
+                pgrdir = os.path.normpath(testdir)
     if not pgrdir:
         raise Exception('Cannot find Radiant programmer')
     exes = glob.glob(os.path.join(pgrdir, '**/pgrcmd.exe'), recursive=True)
