@@ -123,7 +123,7 @@ prep = Builder(action=hw_action)
 
 sm = Builder(
     action=[
-        'sm -c++ -h$BUILD_DIR/hw -c$LOGICC_DIR/dist/ -a$LOGICC_DIR/architecture/ $SOURCE',
+        'sm -c++ -h$BUILD_DIR/hw -c$LOGICC_DIR/dist/ -a$LOGICC_DIR/architecture/ -llogicc $SOURCE',
         'conngen -L$LOGICC_DIR/dist -w $SOURCE',
         ],
     suffix='.xhw',
@@ -173,7 +173,7 @@ xcfgen = Builder(
     action = xcf_generator,
 )
 
-uploadcmd = env['UPLOADCMD'] if 'UPLOADCMD' else find_radiant()
+uploadcmd = env['UPLOADCMD'] if 'UPLOADCMD' in env else find_radiant()
 uploadcmd += ' -infile $SOURCE'
 
 env.Append(BUILDERS={'Prep': prep, 'LogiCC': logicc, 'SM': sm, 'Hdl': hdl,
